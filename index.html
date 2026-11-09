@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EV Charge Calc</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f2f6fb;--bg2:#e3ecf7;--card:#ffffffcc;--card-b:#d9e3ef;--text:#0e1a2b;--muted:#5d6b7e;
+  --accent:#0fb98a;--accent2:#12a4d9;--accent-soft:#0fb98a26;--warn:#c2410c;--warn-bg:#fff1e8;--track:#dbe4ef;--shadow:0 8px 30px #1b3a6014;
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#080e1a;--bg2:#0d1a2e;--card:#111c2fcc;--card-b:#22324a;--text:#e8eff9;--muted:#8d9db3;
+  --accent:#2be0ae;--accent2:#38bdf8;--accent-soft:#2be0ae22;--warn:#ffa57a;--warn-bg:#3a1f12;--track:#223149;--shadow:0 8px 30px #0008;
+}}
+:root[data-theme="dark"]{
+  --bg:#080e1a;--bg2:#0d1a2e;--card:#111c2fcc;--card-b:#22324a;--text:#e8eff9;--muted:#8d9db3;
+  --accent:#2be0ae;--accent2:#38bdf8;--accent-soft:#2be0ae22;--warn:#ffa57a;--warn-bg:#3a1f12;--track:#223149;--shadow:0 8px 30px #0008;
+}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--text);font-family:"Prompt","Noto Sans Thai",system-ui,sans-serif;
+  background:radial-gradient(900px 500px at 80% -10%,var(--accent-soft),transparent 60%),radial-gradient(700px 500px at -10% 10%,#12a4d91f,transparent 60%),var(--bg);
+  padding:20px 16px 40px}
+main{max-width:460px;margin:0 auto;display:grid;gap:16px}
+header{display:flex;align-items:center;gap:12px}
+.logo{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;color:#04281f;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 6px 18px var(--accent-soft)}
+.logo svg{width:24px;height:24px}
+h1{font-size:1.25rem;margin:0;font-weight:600;line-height:1.2}
+header p{margin:2px 0 0;color:var(--muted);font-size:.82rem}
+.card{background:var(--card);border:1px solid var(--card-b);border-radius:22px;padding:20px;box-shadow:var(--shadow);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.eyebrow{font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;margin:0 0 12px}
+
+/* gauge */
+.gauge{position:relative;width:220px;height:220px;margin:0 auto 8px}
+.gauge svg{width:100%;height:100%;transform:rotate(-90deg)}
+.gauge circle{fill:none;stroke-width:16;stroke-linecap:round;transition:stroke-dasharray .45s cubic-bezier(.2,.8,.2,1),stroke .3s}
+.g-track{stroke:var(--track)}
+.g-target{stroke:var(--accent2);opacity:.45}
+.g-soc{stroke:var(--accent)}
+.gauge-c{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.gauge-c b{font-size:3rem;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.gauge-c span{font-size:.8rem;color:var(--muted);margin-top:4px}
+.legend{display:flex;justify-content:center;gap:16px;font-size:.78rem;color:var(--muted);margin-bottom:12px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+
+/* sliders */
+.field{margin-top:14px}
+.field-h{display:flex;justify-content:space-between;align-items:baseline;font-size:.88rem}
+.field-h label{color:var(--muted);font-weight:500}
+.field-h output{font-weight:600;font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:44px;background:transparent;margin:0;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:99px;background:var(--track)}
+input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:var(--track)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:-10px;border-radius:50%;background:#fff;border:6px solid var(--accent);box-shadow:0 2px 8px #0004}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#fff;border:6px solid var(--accent);box-shadow:0 2px 8px #0004}
+#tgt::-webkit-slider-thumb{border-color:var(--accent2)}
+#tgt::-moz-range-thumb{border-color:var(--accent2)}
+:focus-visible{outline:3px solid var(--accent2);outline-offset:2px;border-radius:8px}
+
+/* hero result */
+.hero{background:linear-gradient(135deg,var(--accent-soft),#12a4d91a);}
+.hero-t{font-size:2.4rem;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.hero-s{color:var(--muted);font-size:.85rem;margin-top:4px}
+.chips{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.chip{background:var(--bg);border:1px solid var(--card-b);border-radius:16px;padding:12px 14px}
+.chip span{display:flex;align-items:center;gap:6px;font-size:.74rem;color:var(--muted)}
+.chip svg{width:14px;height:14px;flex:none;color:var(--accent)}
+.chip strong{display:block;font-size:1.05rem;margin-top:4px;font-variant-numeric:tabular-nums;font-weight:600}
+
+/* inputs */
+input[type=number]{width:100%;height:46px;padding:0 12px;border-radius:12px;border:1px solid var(--card-b);background:var(--bg);color:var(--text);font:inherit;font-size:1rem}
+input[type=number]:focus{outline:none;border-color:var(--accent2);box-shadow:0 0 0 3px #12a4d933}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid2 label{display:block;font-size:.76rem;color:var(--muted);margin-bottom:6px}
+details summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;font-weight:500;min-height:44px}
+details summary::-webkit-details-marker{display:none}
+details summary svg{width:18px;height:18px;transition:transform .2s;color:var(--muted)}
+details[open] summary svg{transform:rotate(180deg)}
+details .grid2{margin-top:12px}
+
+/* current meter */
+.meter{height:10px;border-radius:99px;background:var(--track);overflow:hidden;margin-top:14px}
+.meter i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--accent2),var(--accent));transition:width .35s}
+.meter-l{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-top:6px}
+.big-row{display:flex;gap:20px;align-items:flex-end;margin-top:14px}
+.big-row div span{font-size:.76rem;color:var(--muted);display:block}
+.big-row div strong{font-size:1.9rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.warn{margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--warn-bg);color:var(--warn);font-size:.84rem;display:none}
+.warn.on{display:block}
+.note{color:var(--muted);font-size:.75rem;line-height:1.5;margin:12px 0 0}
+#theme{margin-left:auto;width:44px;height:44px;border-radius:14px;border:1px solid var(--card-b);background:var(--card);color:var(--text);cursor:pointer;display:grid;place-items:center}
+#theme svg{width:20px;height:20px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg></div>
+    <div><h1>EV Charge Calc</h1><p>แบต 60.48 kWh · Wall charger 32 A</p></div>
+    <button id="theme" type="button" aria-label="สลับโหมดมืด/สว่าง"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+  </header>
+
+  <section class="card" aria-label="ระดับแบตเตอรี่">
+    <p class="eyebrow">ระดับแบตเตอรี่</p>
+    <div class="gauge">
+      <svg viewBox="0 0 200 200" aria-hidden="true">
+        <circle class="g-track" cx="100" cy="100" r="84" stroke-dasharray="528 528"/>
+        <circle class="g-target" id="gT" cx="100" cy="100" r="84" stroke-dasharray="0 528"/>
+        <circle class="g-soc" id="gS" cx="100" cy="100" r="84" stroke-dasharray="0 528"/>
+      </svg>
+      <div class="gauge-c"><b id="socBig">20%</b><span>เหลืออยู่ตอนนี้</span></div>
+    </div>
+    <div class="legend"><span><i style="background:var(--accent)"></i>ปัจจุบัน</span><span><i style="background:var(--accent2)"></i>เป้าหมาย <b id="tgtV">100%</b></span></div>
+
+    <div class="field">
+      <div class="field-h"><label for="soc">แบตเหลือ</label><output id="socV" for="soc">20%</output></div>
+      <input type="range" id="soc" min="0" max="100" value="20">
+    </div>
+    <div class="field">
+      <div class="field-h"><label for="tgt">ชาร์จให้ถึง</label><output id="tgtO" for="tgt">100%</output></div>
+      <input type="range" id="tgt" min="0" max="100" value="100">
+    </div>
+  </section>
+
+  <section class="card hero" aria-live="polite">
+    <p class="eyebrow">ใช้เวลาชาร์จ</p>
+    <div class="hero-t" id="tFull">-</div>
+    <div class="hero-s">เสร็จประมาณ <b id="done">-</b></div>
+    <div class="chips">
+      <div class="chip"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>กระแส / กำลัง</span><strong id="full">-</strong></div>
+      <div class="chip"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="17" height="10" rx="2"/><path d="M22 11v2"/></svg>เติมเข้าแบต</span><strong id="eBat">-</strong></div>
+      <div class="chip"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5v14"/></svg>ไฟจากสาย</span><strong id="eGrid">-</strong></div>
+      <div class="chip"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M14.5 9a2.5 2 0 0 0-5 0c0 3 5 1.5 5 4.5a2.5 2 0 0 1-5 0M12 6.5v11"/></svg>ค่าไฟ</span><strong id="cost">-</strong></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <p class="eyebrow">อยากชาร์จให้เสร็จภายใน</p>
+    <div class="field" style="margin-top:0">
+      <div class="field-h"><label for="hrs">จำนวนชั่วโมง</label><output id="hrsV" for="hrs">8 ชม.</output></div>
+      <input type="range" id="hrs" min="1" max="24" step="0.5" value="8">
+    </div>
+    <div class="big-row">
+      <div><span>ตั้งกระแส</span><strong id="iNeed">-</strong></div>
+      <div><span>กำลังชาร์จ</span><strong id="pNeed">-</strong></div>
+    </div>
+    <div class="meter" aria-hidden="true"><i id="mBar"></i></div>
+    <div class="meter-l"><span>6 A</span><span id="mMax">32 A</span></div>
+    <div class="warn" id="warn" role="status"></div>
+    <p class="note">ตั้งกระแสต่ำลงเพื่อชาร์จช้า ถนอมระบบไฟบ้าน (ขั้นต่ำ 6 A) ค่าที่ได้เป็นขั้นต่ำ ยังไม่รวมการชาร์จช้าลงช่วงเกิน ~80% และพลังงานสูญเสียขณะสแตนด์บาย</p>
+  </section>
+
+  <section class="card">
+    <details>
+      <summary>ตั้งค่ารถและเครื่องชาร์จ<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="grid2">
+        <div><label for="cap">ความจุแบต (kWh)</label><input type="number" id="cap" value="60.48" step="0.01" inputmode="decimal"></div>
+        <div><label for="volt">แรงดัน (V)</label><input type="number" id="volt" value="220" inputmode="decimal"></div>
+        <div><label for="amax">กระแสที่ตั้งชาร์จ (A) ≤ 32</label><input type="number" id="amax" value="32" min="6" max="32" inputmode="decimal"></div>
+        <div><label for="eff">ประสิทธิภาพ (%)</label><input type="number" id="eff" value="90" inputmode="decimal"></div>
+        <div><label for="rate">ค่าไฟ (บาท/kWh)</label><input type="number" id="rate" value="4.5" step="0.1" inputmode="decimal"></div>
+      </div>
+    </details>
+  </section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const C=2*Math.PI*84;
+const fmtT=h=>{const m=Math.round(h*60);return Math.floor(m/60)+" ชม. "+String(m%60).padStart(2,"0")+" น."};
+
+function calc(o){
+  const kwhBat=Math.max(0,o.tgt-o.soc)/100*o.cap;
+  const eGrid=kwhBat/(o.eff/100);
+  const pLine=o.volt*o.amax/1000;                    // kW = V x A
+  const iFull=pLine*1000/o.volt;
+  const tFull=pLine>0?eGrid/pLine:0;
+  let iNeed=o.hrs>0?eGrid*1000/(o.volt*o.hrs):Infinity;
+  const feasible=o.hrs>0&&iNeed<=iFull+1e-9&&iFull>=6;
+  iNeed=Math.min(iFull,Math.max(6,iNeed));
+  return{kwhBat,eGrid,pLine,iFull,tFull,iNeed,pNeed:iNeed*o.volt/1000,feasible,cost:eGrid*o.rate};
+}
+
+function dashes(){
+  const s=+$("soc").value,t=Math.max(+$("tgt").value,s);
+  $("gS").setAttribute("stroke-dasharray",`${s/100*C} ${C}`);
+  $("gT").setAttribute("stroke-dasharray",`${t/100*C} ${C}`);
+  $("gS").style.stroke=s<20?"#f97316":"";
+}
+
+function render(){
+  const o={soc:+$("soc").value,tgt:+$("tgt").value,cap:+$("cap").value,volt:+$("volt").value,
+    amax:Math.min(+$("amax").value,32),eff:+$("eff").value,rate:+$("rate").value,hrs:+$("hrs").value};
+  if(o.tgt<o.soc){o.tgt=o.soc;$("tgt").value=o.soc}
+  $("socV").textContent=$("socBig").textContent=o.soc+"%";
+  $("tgtV").textContent=$("tgtO").textContent=o.tgt+"%";
+  $("hrsV").textContent=o.hrs+" ชม.";
+  dashes();
+  const w=$("warn");
+  const show=m=>{w.textContent=m;w.classList.toggle("on",!!m)};
+  const ids=["eBat","eGrid","full","tFull","done","cost","iNeed","pNeed"];
+  const bad=!(o.cap>0&&o.volt>0&&o.amax>0&&o.eff>=1&&o.eff<=100);
+  if(bad){ids.forEach(i=>$(i).textContent="-");$("mBar").style.width="0";show("กรุณากรอกค่าให้ถูกต้อง (ประสิทธิภาพ 1–100%, ค่าอื่นต้องมากกว่า 0)");return}
+  if(o.tgt===o.soc){ids.forEach(i=>$(i).textContent="-");$("mBar").style.width="0";show("แบตถึงเป้าหมายแล้ว ไม่ต้องชาร์จ");return}
+  const r=calc(o);
+  $("eBat").textContent=r.kwhBat.toFixed(1)+" kWh";
+  $("eGrid").textContent=r.eGrid.toFixed(1)+" kWh";
+  $("full").textContent=r.iFull.toFixed(1)+" A · "+r.pLine.toFixed(1)+" kW";
+  $("tFull").textContent=fmtT(r.tFull);
+  const d=new Date(Date.now()+r.tFull*3600e3),n0=new Date();
+  const days=Math.round((new Date(d.getFullYear(),d.getMonth(),d.getDate())-new Date(n0.getFullYear(),n0.getMonth(),n0.getDate()))/864e5);
+  $("done").textContent=d.toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"})+(days>0?` (+${days} วัน)`:"");
+  $("cost").textContent=r.cost.toFixed(0)+" ฿";
+  $("iNeed").textContent=r.iNeed.toFixed(1)+" A";
+  $("pNeed").textContent=r.pNeed.toFixed(2)+" kW";
+  $("mMax").textContent=Math.round(r.iFull)+" A";
+  $("mBar").style.width=Math.max(0,Math.min(100,(r.iNeed-6)/Math.max(r.iFull-6,1)*100))+"%";
+  show(r.feasible?"":(o.hrs>0?`ชาร์จไม่ทันใน ${o.hrs} ชม. ต้องใช้ ${fmtT(r.tFull)} ที่กระแสสูงสุด`:"กรุณาใส่จำนวนชั่วโมงมากกว่า 0"));
+}
+document.querySelectorAll("input").forEach(e=>e.addEventListener("input",render));
+$("theme").addEventListener("click",()=>{
+  const el=document.documentElement;
+  const dark=el.dataset.theme?el.dataset.theme==="dark":matchMedia("(prefers-color-scheme:dark)").matches;
+  el.dataset.theme=dark?"light":"dark";
+});
+render();
+</script>
+</body>
+</html>
