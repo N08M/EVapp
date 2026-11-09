@@ -9,7 +9,7 @@ import sys
 from datetime import datetime, timedelta
 
 CAPACITY_KWH = 60.48
-VOLT = 220.0
+VOLT = 230.0
 AMP_MAX = 32.0
 AMP_MIN = 6.0
 EFF = 0.90
