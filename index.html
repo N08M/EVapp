@@ -94,6 +94,19 @@ details .grid2{margin-top:12px}
 .note{color:var(--muted);font-size:.75rem;line-height:1.5;margin:12px 0 0}
 #theme{margin-left:auto;width:44px;height:44px;border-radius:14px;border:1px solid var(--card-b);background:var(--card);color:var(--text);cursor:pointer;display:grid;place-items:center}
 #theme svg{width:20px;height:20px}
+/* AI insight */
+.ai-h{display:flex;align-items:center;gap:8px;margin:0 0 4px}
+.ai-badge{font-size:.68rem;font-weight:600;padding:2px 8px;border-radius:99px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#04281f}
+.ai-sub{color:var(--muted);font-size:.8rem;margin:0 0 12px}
+.ins{border-radius:14px;padding:12px 14px;font-size:.88rem;line-height:1.55;background:var(--accent-soft);border:1px solid var(--card-b)}
+.ins.bad{background:var(--warn-bg);color:var(--warn)}
+.ins b{font-weight:600}
+.rules{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.rule{background:var(--bg);border:1px solid var(--card-b);border-radius:16px;padding:12px 14px}
+.rule span{display:block;font-size:.74rem;color:var(--muted)}
+.rule strong{display:block;font-size:1.25rem;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+.rule small{display:block;font-size:.72rem;color:var(--muted);margin-top:2px;line-height:1.4}
+.tips{margin:12px 0 0;padding-left:18px;font-size:.84rem;line-height:1.6}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -167,6 +180,28 @@ details .grid2{margin-top:12px}
       </div>
     </details>
   </section>
+  <section class="card" aria-label="AI Insight และคำแนะนำ">
+    <details>
+    <summary><span class="ai-h"><span class="eyebrow" style="margin:0">AI Insight</span><span class="ai-badge">BYD ATTO 3 2024</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></summary>
+    <p class="ai-sub" style="margin-top:8px">วิเคราะห์จากระดับแบตและเป้าหมายที่ตั้งไว้ด้านบน</p>
+    <div class="ins" id="insight" aria-live="polite"></div>
+
+    <div class="rules">
+      <div class="rule"><span>ห้ามปล่อยต่ำกว่า</span><strong>20%</strong><small>ต่ำสุดไม่ควรเกิน 10%</small></div>
+      <div class="rule"><span>ชาร์จใช้ประจำวัน</span><strong>80–90%</strong><small>ลดความเครียดของเซลล์</small></div>
+      <div class="rule"><span>ชาร์จ 100%</span><strong>1–2 ครั้ง/สัปดาห์</strong><small>อย่างน้อยสัปดาห์ละครั้ง เพื่อปรับเทียบ %</small></div>
+      <div class="rule"><span>DC ชาร์จเร็ว</span><strong>≤ 80%</strong><small>ใช้เมื่อจำเป็น ช่วงเดินทางไกล</small></div>
+    </div>
+
+    <ul class="tips">
+      <li>ATTO 3 ใช้แบต <b>LFP (Blade Battery)</b> ทนการชาร์จเต็มได้ดีกว่าแบต NMC จึงชาร์จ 100% ได้ ไม่ต้องกังวลมาก</li>
+      <li>ชาร์จ 100% แล้วควรออกรถภายใน 1–2 ชม. อย่าจอดทิ้งไว้ที่ 100% หลายวัน</li>
+      <li>จอดนานเกิน 1 สัปดาห์ ให้เหลือแบตราว 50–60%</li>
+      <li>ชาร์จ AC ที่บ้านเป็นหลัก DC เป็นตัวเสริม ถ้าชาร์จทันทีหลังขับ แบตอุ่น จะชาร์จได้ดีกว่าแบตเย็น</li>
+    </ul>
+    <p class="note">คำแนะนำนี้เป็นแนวทางทั่วไปจากหลักการของแบต LFP ไม่ใช่ค่าที่ BYD รับรอง ควรตรวจสอบกับคู่มือรถและศูนย์บริการ BYD อีกครั้ง</p>
+    </details>
+  </section>
 </main>
 
 <script>
@@ -193,6 +228,18 @@ function dashes(){
   $("gS").style.stroke=s<20?"#f97316":"";
 }
 
+function insight(soc,tgt){
+  const el=$("insight");let m="",bad=false;
+  if(soc<10){bad=true;m=`<b>แบตเหลือ ${soc}% ต่ำมาก</b> ควรชาร์จทันที การปล่อยต่ำกว่า 10% บ่อยๆ ทำให้แบตเสื่อมเร็วและเสี่ยงรถหยุดกลางทาง`}
+  else if(soc<20){bad=true;m=`<b>แบตเหลือ ${soc}% ต่ำกว่าเกณฑ์ 20%</b> ควรรีบชาร์จ และพยายามอย่าให้ต่ำกว่านี้เป็นนิสัย`}
+  else if(tgt>=100){m=`<b>เป้าหมาย 100%</b> ชาร์จได้ แต่ถ้าเป็นการใช้ประจำวัน แนะนำลดเหลือ 80–90% และชาร์จเต็มแค่ 1–2 ครั้ง/สัปดาห์ (ก่อนเดินทางไกล) ควรชาร์จให้เสร็จใกล้เวลาออกรถ`}
+  else if(tgt>90){m=`<b>เป้าหมาย ${tgt}%</b> ค่อนข้างสูง ถ้าไม่มีทริปไกล ลดเหลือ 80–90% จะถนอมแบตกว่า`}
+  else if(tgt>=80){m=`<b>เป้าหมาย ${tgt}% เหมาะสม</b> เป็นช่วงที่ถนอมแบตและชาร์จได้เร็ว เหมาะกับใช้ประจำวัน`}
+  else if(tgt>soc){m=`<b>เป้าหมาย ${tgt}%</b> ถ้าไม่เพียงพอต่อการเดินทาง ลองเพิ่มเป็น 80–90%`}
+  else{m=`แบตถึงเป้าหมายแล้ว ไม่ต้องชาร์จเพิ่ม`}
+  el.innerHTML=m;el.classList.toggle("bad",bad);
+}
+
 function render(){
   const o={soc:+$("soc").value,tgt:+$("tgt").value,cap:+$("cap").value,volt:+$("volt").value,
     amax:Math.min(+$("amax").value,32),eff:+$("eff").value,rate:+$("rate").value,hrs:+$("hrs").value};
@@ -201,6 +248,7 @@ function render(){
   $("tgtV").textContent=$("tgtO").textContent=o.tgt+"%";
   $("hrsV").textContent=o.hrs+" ชม.";
   dashes();
+  insight(o.soc,o.tgt);
   const w=$("warn");
   const show=m=>{w.textContent=m;w.classList.toggle("on",!!m)};
   const ids=["eBat","eGrid","full","tFull","done","cost","iNeed","pNeed"];
